@@ -41,7 +41,9 @@ void task() {
           String command = Serial.readStringUntil('\n');
           if (command == "ledON") 
           {
+            String data = Serial.readString();
             juegoActivo = true;
+            temperature = data.toInt();
             Juego();
 
             digitalWrite(led, HIGH);
@@ -93,9 +95,9 @@ void Juego()
 {
     if (temperature > 0) 
     {
-      temperature--;
-      Serial.println("Temperatura: " + String(temperature));
       delay(1000); // descenso de temperatura cada segundo
+      Serial.println(temperature);
+      temperature--;
     } 
     else 
     {
