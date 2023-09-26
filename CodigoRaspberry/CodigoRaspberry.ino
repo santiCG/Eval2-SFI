@@ -1,3 +1,77 @@
+/*void task()
+{
+		enum class TaskStates
+		{
+				INIT,
+				WAIT_INIT,
+				SEND_EVENT
+		};
+		static TaskStates taskState = TaskStates::INIT;
+		static uint32_t previous = 0;
+		static u_int32_t counter = 0;
+
+    // Variables
+    //float altitude = 500.0;
+    //float pressure = 10.0;
+    static float temperature = 25.0;
+
+
+		switch (taskState)
+		{
+				case TaskStates::INIT:
+				{
+						Serial.begin(115200);
+						taskState = TaskStates::WAIT_INIT;
+						break;
+				}
+				case TaskStates::WAIT_INIT:
+				{
+						if (Serial.available() > 0)
+						{
+								if (Serial.read() == '1')
+								{
+										previous = 0; // Force to send the first value immediately
+										taskState = TaskStates::SEND_EVENT;
+								}
+						}
+						break;
+				}
+				case TaskStates::SEND_EVENT:
+				{
+						uint32_t current = temperature;
+						if ((current - previous) > 2000)
+						{
+								previous = current;
+								Serial.print(temperature);
+								counter++;
+						}
+						if (Serial.available() > 0)
+						{
+							  if (Serial.read() == '2')
+							  {
+								    taskState = TaskStates::WAIT_INIT;
+							  }
+						}
+						break;
+				}
+				default:
+				{
+						break;
+				}
+		}
+}
+
+void setup()
+{
+		task();
+}
+
+void loop()
+{
+		task();
+}*/
+
+
 #include "Arduino.h"
 
 #define LED_PIN 25 // Asegúrate de ajustar este valor al pin correcto para tu LED
@@ -5,7 +79,7 @@
 // Variables
 float altitude = 500.0;
 float pressure = 10.0;
-float temperature = 25.0;
+static float temperature = 25.0;
 
 // Velocidades de cambio
 float temperatureChangeSpeed = 0.0;
@@ -34,10 +108,10 @@ void update()
     Juego();
 
     // Escucha datos enviados desde Unity y actualiza las variables
-    /*if (Serial.available()) {
+    if (Serial.available()) {
         String data = Serial.readStringUntil('\n');
         sscanf(data.c_str(), "%f,%f,%f,%f", &altitude, &pressure, &temperature, &temperatureChangeSpeed);
-    }*/
+    }
 
     if(Serial.available()) {
     String message = Serial.readStringUntil('\n'); // Leer el mensaje hasta el final de la línea

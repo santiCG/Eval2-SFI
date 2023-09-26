@@ -13511,9 +13511,8 @@ GameObject:
   - component: {fileID: 1692654336}
   - component: {fileID: 1692654339}
   - component: {fileID: 1692654338}
+  - component: {fileID: 1692654340}
   - component: {fileID: 1692654337}
-  - component: {fileID: 1692654341}
-  - component: {fileID: 1692654342}
   m_Layer: 5
   m_Name: Button
   m_TagString: Untagged
@@ -13636,7 +13635,7 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1692654335}
   m_CullTransparentMesh: 1
---- !u!114 &1692654341
+--- !u!114 &1692654340
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -13645,7 +13644,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1692654335}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ed7c6260cf7541f46898071d16606b65, type: 3}
+  m_Script: {fileID: 11500000, guid: fbecfc9fe0539784c9db3203709a2d1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   temperaturaSlider: {fileID: 1033094105}
@@ -13663,23 +13662,7 @@ MonoBehaviour:
   menuConfig: {fileID: 2106389993}
   hud: {fileID: 1031258370}
   boton: {fileID: 1692654337}
-  configurado: 0
---- !u!114 &1692654342
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1692654335}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e431a9b253cace34e888f80680edeaaa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  altitudeSlider: {fileID: 284662347}
-  pressureSlider: {fileID: 486084224}
-  temperatureSlider: {fileID: 1033094105}
-  velocitySlider: {fileID: 876075898}
+  myText: {fileID: 726521397}
 --- !u!850595691 &1795897356
 LightingSettings:
   m_ObjectHideFlags: 0
