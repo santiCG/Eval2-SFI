@@ -43,6 +43,10 @@ public class Test : MonoBehaviour
     private int varSpeed;
 
     private int tempInicial;
+    private float timerPuzzle;
+    private float timerDifficulty;
+    private float tiempoEntreAumentos = 10.0f;
+    private float tiempoDificultad = 30.0f;
 
     public Button boton;
 
@@ -63,6 +67,8 @@ public class Test : MonoBehaviour
         altitudSlider.value = 500;    // Valor inicial de la altitud.
         presionSlider.value = 13;   // Valor inicial de la presión atmosférica.
         velocidadSlider.value = 1;
+        timerPuzzle = 0.0f;
+        timerDifficulty = 0.0f;
 
 
         _serialPort = new SerialPort();
@@ -85,6 +91,8 @@ public class Test : MonoBehaviour
         //alturaText.text = "Altura: " + varHeight;
         //presionText.text = "Presión: " + varPressure;
         temperaturaText.text = "Temperatura: " + varTemp;
+        acertijosResueltosText.text = "Acertijos resueltos: " + varSolvedPuzzles;
+        nivelDificultadText.text = "Nivel de dificultad: " + varDifficulty;
         //velocidadText.text = "Velocidad: " + varSpeed;
 
         switch (taskState)
@@ -94,6 +102,22 @@ public class Test : MonoBehaviour
                 Debug.Log("WAIT COMMANDS");
                 break;
             case TaskState.WAIT_COMMANDS:
+
+                timerPuzzle += Time.deltaTime;
+                if (timerPuzzle >= tiempoEntreAumentos)
+                {
+                    varSolvedPuzzles++;
+                    timerPuzzle = 0.0f;
+                    Debug.Log("Acertijos resueltos: " + varSolvedPuzzles);
+                }
+
+                timerDifficulty += Time.deltaTime;
+                if (timerDifficulty >= tiempoDificultad)
+                {
+                    varDifficulty++;
+                    timerDifficulty = 0.0f;
+                    Debug.Log("Nivel de dificultad: " + varDifficulty);
+                }
 
                 if (Input.GetKeyDown(KeyCode.Return))
                 {
