@@ -15,52 +15,14 @@ Estas variables se configurarán a través del Raspberry Pi Pico para mandarlos 
 > Este explicará a grandes rasgos la funcionalidad de los códigos empleados para el uso a futuro de otros desarrolladores que entiendan la funcionalidad de cada elemento empleado 
 
 ## para Unity
-### Código - Botón 
-#### Variables
-``` c#
-    	public Slider temperaturaSlider;
-    	public Slider altitudSlider;
-    	public Slider presionSlider;
-    	public Text acertijosResueltosText;
-    	public Text acertijosTotalesText;
-    	public Text nivelDificultadText;
-
-    	public Camera camaraEscena;
-    	public GameObject CarpetadeSliders;
-
-    	public Button boton;
-```
-
-- Public Slider: es el objeto que asocia las barras deslizadoras que ayudarán a configurar las diferentes variables antes de entrar en el Escape Room.
-- Public Text: es el texto que se asignará para decir el nombre de la variable y la cantidad en el momento (aunque este código en específico no lo indique).
-- Public Camera: es la cámara que se manipulará a lo largo del Unity a nuestra propia conveniencia.
-- Public Button: Será el botón que se presionará para terminar de configurar las características del programa.
-- Public GameObject: Funcionará como una carpeta madre en la que se guardarán todos los textos, botones y sliders para dejar de mostrarlos más adelante.
-
-#### Funciones
-``` c#
-    void Start()
-    {
-   	     boton.onClick.AddListener(cambiarPosicionCamara);
-    }
-
-    void cambiarPosicionCamara()
-    {
-        camaraEscena.transform.position = new Vector3(76, 3, -28);
-        CarpetadeSliders.SetActive(false);
-    }
-```
-
-- Es la función que asignará el botón para que cumpla la función especificada. En este caso se establecerá el Void Start para que en el momento de que se presiona el botón se arremeta al Void cambiarPosicionCamara; siendo este void quien cumple dos funciones: mueve la cámara para mostrar en la escena de Unity la imagen del programa iniciado (los pingüinos) y ocultar los elementos de la configuración base.
-
-### Código - Serial 
-#### Variables
+### Variables
 
 ``` c#
     public Slider temperaturaSlider;
     public Slider altitudSlider;
     public Slider presionSlider;
     public Slider velocidadSlider;
+
     public TextMeshProUGUI temperaturaText;
     public TextMeshProUGUI alturaText;
     public TextMeshProUGUI presionText;
@@ -68,81 +30,197 @@ Estas variables se configurarán a través del Raspberry Pi Pico para mandarlos 
 
     public TextMeshProUGUI acertijosResueltosText;
     public TextMeshProUGUI acertijosTotalesText;
-    public TextMeshProUGUI nivelDificultadText; 
+    public TextMeshProUGUI nivelDificultadText;
+    public TextMeshProUGUI barraTemperatura;
 
-    private SerialPort _serialPort = new SerialPort();
-    private byte[] buffer = new byte[32];
 
-    private static int counter = 0;
+
+    public Camera camaraEscena;
+    public GameObject menuConfig;
+    public GameObject hud;
 
     private int varTemp;
     private int varPressure;
     private int varHeight;
     private int varSpeed;
+    private int varSolvedPuzzles = 0;
+    private int varDifficulty = 0;
+
+
+    private int tempInicial;
+    private float timerPuzzle;
+    private float timerDifficulty;
+    private float tiempoEntreAumentos = 10.0f;
+    private float tiempoDificultad = 30.0f;
+
+    public Button boton;
+
+    public bool configurado = false;
+
+    private static TaskState taskState = TaskState.INIT;
+    private SerialPort _serialPort;
+    private byte[] buffer;
+    public TextMeshProUGUI myText;
 ```
-- Slider y Text se mantiene con la misma funcionalidad que en el código Botón (en este caso es TextMeshPro, pero sigue cumpliendo la misma función de Text).
-- Private int varX: Son las variables que asignarán cada una de las instancias que se necesiten. En este caso, para configurar Temperatura, presión, altura y velocidad.
+- Public Slider: es el objeto que asocia las barras deslizadoras que ayudarán a configurar las diferentes variables antes de entrar en el Escape Room.
+- Public TextMeshProUGUI: es el texto que se asignará para decir el nombre de la variable y la cantidad numérica (no lo asigna, solo lo muestra).
+- Public Camera: es la cámara que se manipulará a lo largo del Unity a nuestra propia conveniencia.
+- Public Button: Será el botón que se presionará para terminar de configurar las características del programa.
+- Public GameObject: Funcionará como una carpeta madre en la que se guardarán todos los textos, botones y sliders para que se pueda manipular su aparición o desaparición dependiendo de lo que sea conveniente en el momento.
+- Private int: Son las variables que asignarán cada una de las instancias que se necesiten. En este caso, para configurar Temperatura, presión, altura, velocidad, dificultad y acertijos resueltos.
+- Private float: Son variables que requieren un valor decimal en lugar de un entero fijo. En estas se encuentran la variación de la temperatura, temporizadores y tiempos límites.
 - Private SerialPort: Crea una comunicación que enlaza el microcontrolador con el código.
+- static TaskStates taskState = TaskStates::INIT: tiene como propósito mantener el estado de INIT en el taskState activo, o al menos como estado inicial.
 - Private byte[] buffer: Para almacenar en el búfer una cantidad determinada de bytes, en este caso 32 de longitud.
 
-#### Funciones
-``` c#
-    void Update()
-    {
-        varTemp = Convert.ToInt32(temperaturaSlider.value);
-        varPressure = Convert.ToInt32(presionSlider.value);
-        varHeight = Convert.ToInt32(altitudSlider.value);
-        varSpeed = Convert.ToInt32(velocidadSlider.value);
+### Funciones
 
-        alturaText.text = "Altura: " + altitudSlider.value.ToString();
-        presionText.text = "Presión: " + presionSlider.value.ToString();
-        temperaturaText.text = "Temperatura: " + temperaturaSlider.value.ToString();
-        acertijosTotalesText.text = "Acertijos Totales: " + temperaturaSlider.value.ToString();
-        velocidadText.text = "Velocidad: " + velocidadSlider.value.ToString();
+``` c#
+    void Start()
+    {
+        boton.onClick.AddListener(cambiarPosicionCamara);
+        //hud.SetActive(false);
+
+        temperaturaSlider.value = 25; // Valor inicial de la temperatura.
+        altitudSlider.value = 500;    // Valor inicial de la altitud.
+        presionSlider.value = 13;   // Valor inicial de la presión atmosférica.
+        velocidadSlider.value = 1;
+        timerPuzzle = 0.0f;
+        timerDifficulty = 0.0f;
+
+
+        _serialPort = new SerialPort();
+        _serialPort.PortName = "COM4";
+        _serialPort.BaudRate = 115200;
+        _serialPort.DtrEnable = true;
+        _serialPort.NewLine = "\n";
+        _serialPort.Open();
+        //Debug.Log("Open Serial Port");
+        buffer = new byte[128];
+    }
+```
+
+
+``` c#
+varTemp = Convert.ToInt32(temperaturaSlider.value);
+        //varPressure = Convert.ToInt32(presionSlider.value);
+        //varHeight = Convert.ToInt32(altitudSlider.value);
+        //varSpeed = Convert.ToInt32(velocidadSlider.value);
+
+        //alturaText.text = "Altura: " + varHeight;
+        //presionText.text = "Presión: " + varPressure;
+        temperaturaText.text = "Temperatura: " + varTemp;
+        acertijosResueltosText.text = "Acertijos resueltos: " + varSolvedPuzzles;
+        nivelDificultadText.text = "Nivel de dificultad: " + varDifficulty;
+        //velocidadText.text = "Velocidad: " + varSpeed;
 ```
 En esta primera parte se cumplen dos objetivos:
-1. las instancias que se configuran en los sliders se vuelven variables numéricas con el Convert.ToInt32, en este caso de int.
-2. mostrar en el texto el valor de los valores en los sliders, además de complementarlo con un pequeño texto para que se identifique cada cambio.
+-  las instancias que se configuran en los sliders se vuelven variables numéricas con el Convert.ToInt32, en este caso de int.
+-  mostrar en el texto el valor de los valores en los sliders, además de complementarlo con un pequeño texto para que se identifique cada cambio.
 
 ``` c#
-if (Input.GetKeyDown(KeyCode.A))
-        {
-            byte[] data = { 0x31 };            
-            _serialPort.Write(data, 0, 1);
-            int numData = _serialPort.Read(buffer, 0, 20);
-        }
-
-        if (_serialPort.IsOpen)
-        {
-            _serialPort.WriteLine("SolicitarDatos");
-            string respuesta = _serialPort.ReadLine();
-
-            string[] datos = respuesta.Split(',');
-
-            if (datos.Length == 3)
-            {
-                float temperaturaActual = float.Parse(datos[0]);
-                float altitudActual = float.Parse(datos[1]);
-                float presionActual = float.Parse(datos[2]);
-
-                // Actualizar los valores de los Sliders.
-                temperaturaSlider.value = temperaturaActual;
-                altitudSlider.value = altitudActual;
-                presionSlider.value = presionActual;
-
-                // Descenso de temperatura.
-                if (temperaturaSlider.value > 0)
-                {
-                    temperaturaSlider.value -= velocidadDescensoTemperatura * Time.deltaTime;
-                }
-            }
-}
+case TaskState.INIT:
+                taskState = TaskState.WAIT_COMMANDS;
+                Debug.Log("WAIT COMMANDS");
+                break;
+            case TaskState.WAIT_COMMANDS:
 ```
-1. Se configura que, al ser presionada la letra "A" se ejecuten una serie de instrucciones: se crea un array de datos llamado data que solo contiene un valor, en este caso 0x31 ó 1. Se envían los datos al puerto serial y luego se intenta leer hasta 20 bytes de datos desde el dispositivo y los almacena en un búfer. Esto se hace de modo que el procesamiento sea igual en cualquier dispositivo independiente de su capacidad.
-2. Luego se verifica si el puerto serial está abierto, envía una solicitud al dispositivo a través del puerto serial y se incita a las personas que digiten datos por el "String Respuesta", lee la respuesta del dispositivo y luego divide la respuesta en valores utilizando comas como delimitadores (para que en cada coma sea una variable diferente).
-3. Al ser comparado con la cantidad de datos ingresados entre comas (exactamente 3), se creará un array que se guardarán las respuestas dependiendo del orden estipulado por el usuario que se modifican para poner temperatura, presión y altura.
-4. Se actualizan los valores de los sliders
-5. Se desciende la temperatura siempre y cuando el valor del slider de temperatura sea mayor que 0.
+
+
+``` c#
+         timerPuzzle += Time.deltaTime;
+                if (timerPuzzle >= tiempoEntreAumentos)
+                {
+                    varSolvedPuzzles++;
+                    timerPuzzle = 0.0f;
+                    Debug.Log("Acertijos resueltos: " + varSolvedPuzzles);
+                }
+
+                timerDifficulty += Time.deltaTime;
+                if (timerDifficulty >= tiempoDificultad)
+                {
+                    varDifficulty++;
+                    timerDifficulty = 0.0f;
+                    Debug.Log("Nivel de dificultad: " + varDifficulty);
+                }
+```
+
+
+``` c#
+if (Input.GetKeyDown(KeyCode.Return))
+                {
+                    tempInicial = varTemp;
+                    _serialPort.Write("ledON\n");
+                    _serialPort.Write(varTemp.ToString());
+                    Debug.Log("Send ledON");
+                    //cambiarPosicionCamara();
+                }
+```
+
+
+``` c#
+                if (Input.GetKeyDown(KeyCode.S))
+                {
+                    _serialPort.Write("ledOFF\n");
+                    Debug.Log("Send ledOFF");
+                }
+                if (Input.GetKeyDown(KeyCode.R))
+                {
+                    _serialPort.Write("readBUTTONS\n");
+                    Debug.Log("Send readBUTTONS");
+                }
+```
+
+
+``` c#
+                if (_serialPort.BytesToRead > 0)
+                {
+                    string response = _serialPort.ReadLine();
+                    Debug.Log(response);
+
+                    // Separar los valores del mensaje
+                    string[] values = response.Split(new char[] { ':', ' ' });
+
+                    // Asignar los valores a las variables
+                    varTemp = Convert.ToInt32(values[1]);
+                    varHeight = Convert.ToInt32(values[3]);
+                    varPressure = Convert.ToInt32(values[5]);
+
+                    // Actualizar las etiquetas
+                    alturaText.text = "Altura: " + varHeight;
+                    presionText.text = "Presión: " + varPressure;
+                    temperaturaText.text = "Temperatura: " + varTemp;
+
+
+                    //varTemp = Convert.ToInt32(response);
+                    /*int numAcertijos = tempInicial;
+
+                    acertijosTotalesText.text = "Acertijos Totales: " + numAcertijos;
+                    barraTemperatura.text = "Temp actual: " + varTemp;*/
+                }
+                break;
+```
+
+``` c#
+            default:
+                Debug.Log("State Error");
+                break;
+```
+
+``` c#
+    void cambiarPosicionCamara()
+    {
+        camaraEscena.transform.position = new Vector3(76, 3, -28);
+        menuConfig.SetActive(false);
+        hud.SetActive(true);
+
+        configurado = true;
+
+        return;
+    }
+```
+- Es la función que asignará el botón para que cumpla la función especificada. En este caso se establecerá el Void Start para que en el momento de que se presiona el botón se arremeta al Void cambiarPosicionCamara; siendo este void quien cumple tres funciones: mueve la cámara para mostrar en la escena de Unity la imagen del programa iniciado (los pingüinos), deja la configuración verdadera y oculta los elementos de la configuración base.
+
 
 ## para Arduino
 ### Variables
@@ -151,6 +229,8 @@ int temperature = 20;
 bool juegoActivo = false;
 ``` 
 Esta variable se usa para asignar un valor a la temperatura base. Además se establece un booleano para indicar el momento en que se inicia el juego/programa.
+
+### Funciones
 
 ``` c++
 String btnState(uint8_t btnState) {
