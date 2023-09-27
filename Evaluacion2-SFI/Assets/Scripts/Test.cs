@@ -41,15 +41,8 @@ public class Test : MonoBehaviour
     private int varPressure;
     private int varHeight;
     private int varSpeed;
-    private int varSolvedPuzzles = 0;
-    private int varDifficulty = 0;
 
     private int tempInicial;
-    private float timerPuzzle;
-    private float timerDifficulty;
-    private float tiempoEntreAumentos = 10.0f;
-    private float tiempoDificultad = 30.0f;
-
 
     public Button boton;
 
@@ -70,8 +63,6 @@ public class Test : MonoBehaviour
         altitudSlider.value = 500;    // Valor inicial de la altitud.
         presionSlider.value = 13;   // Valor inicial de la presión atmosférica.
         velocidadSlider.value = 1;
-        timerPuzzle = 0.0f;
-        timerDifficulty = 0.0f;
 
 
         _serialPort = new SerialPort();
@@ -87,17 +78,14 @@ public class Test : MonoBehaviour
     void Update()
     {
         varTemp = Convert.ToInt32(temperaturaSlider.value);
-        varPressure = Convert.ToInt32(presionSlider.value);
-        varHeight = Convert.ToInt32(altitudSlider.value);
-        varSpeed = Convert.ToInt32(velocidadSlider.value);
+        //varPressure = Convert.ToInt32(presionSlider.value);
+        //varHeight = Convert.ToInt32(altitudSlider.value);
+        //varSpeed = Convert.ToInt32(velocidadSlider.value);
 
-        alturaText.text = "Altura: " + varHeight;
-        presionText.text = "Presión: " + varPressure;
+        //alturaText.text = "Altura: " + varHeight;
+        //presionText.text = "Presión: " + varPressure;
         temperaturaText.text = "Temperatura: " + varTemp;
-        velocidadText.text = "Velocidad: " + varSpeed;
-        acertijosResueltosText.text = "Acertijos resueltos: " + varSolvedPuzzles;
-        nivelDificultadText.text = "Nivel de dificultad: " + varDifficulty;
-
+        //velocidadText.text = "Velocidad: " + varSpeed;
 
         switch (taskState)
         {
@@ -106,22 +94,6 @@ public class Test : MonoBehaviour
                 Debug.Log("WAIT COMMANDS");
                 break;
             case TaskState.WAIT_COMMANDS:
-
-                timerPuzzle += Time.deltaTime;
-                if (timerPuzzle >= tiempoEntreAumentos)
-                {
-                    varSolvedPuzzles++;
-                    timerPuzzle = 0.0f;
-                    Debug.Log("Acertijos resueltos: " + varSolvedPuzzles);
-                }
-
-                timerDifficulty += Time.deltaTime;
-                if (timerDifficulty >= tiempoDificultad)
-                {
-                    varDifficulty++;
-                    timerDifficulty = 0.0f;
-                    Debug.Log("Nivel de dificultad: " + varDifficulty);
-                }
 
                 if (Input.GetKeyDown(KeyCode.Return))
                 {
@@ -144,12 +116,27 @@ public class Test : MonoBehaviour
                 if (_serialPort.BytesToRead > 0)
                 {
                     string response = _serialPort.ReadLine();
-                    varTemp = Convert.ToInt32(response);
-                    int numAcertijos = tempInicial;
+                    Debug.Log(response);
+
+                    // Separar los valores del mensaje
+                    string[] values = response.Split(new char[] { ':', ' ' });
+
+                    // Asignar los valores a las variables
+                    varTemp = Convert.ToInt32(values[1]);
+                    varHeight = Convert.ToInt32(values[3]);
+                    varPressure = Convert.ToInt32(values[5]);
+
+                    // Actualizar las etiquetas
+                    alturaText.text = "Altura: " + varHeight;
+                    presionText.text = "Presión: " + varPressure;
+                    temperaturaText.text = "Temperatura: " + varTemp;
+
+
+                    //varTemp = Convert.ToInt32(response);
+                    /*int numAcertijos = tempInicial;
 
                     acertijosTotalesText.text = "Acertijos Totales: " + numAcertijos;
-                    barraTemperatura.text = "Temp actual: " + varTemp;
-                    Debug.Log(response);
+                    barraTemperatura.text = "Temp actual: " + varTemp;*/
                 }
                 break;
 
