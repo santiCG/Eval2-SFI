@@ -41,11 +41,14 @@ public class Test : MonoBehaviour
     private int varPressure;
     private int varHeight;
     private int varSpeed;
-    private int varSolvedPuzzles;
+    private int varSolvedPuzzles = 0;
+    private int varDifficulty = 0;
 
     private int tempInicial;
-    private float timer;
+    private float timerPuzzle;
+    private float timerDifficulty;
     private float tiempoEntreAumentos = 10.0f;
+    private float tiempoDificultad = 30.0f;
 
 
     public Button boton;
@@ -67,7 +70,8 @@ public class Test : MonoBehaviour
         altitudSlider.value = 500;    // Valor inicial de la altitud.
         presionSlider.value = 13;   // Valor inicial de la presión atmosférica.
         velocidadSlider.value = 1;
-        timer = 0.0f;
+        timerPuzzle = 0.0f;
+        timerDifficulty = 0.0f;
 
 
         _serialPort = new SerialPort();
@@ -86,13 +90,13 @@ public class Test : MonoBehaviour
         varPressure = Convert.ToInt32(presionSlider.value);
         varHeight = Convert.ToInt32(altitudSlider.value);
         varSpeed = Convert.ToInt32(velocidadSlider.value);
-        varSolvedPuzzles = 0;
 
         alturaText.text = "Altura: " + varHeight;
         presionText.text = "Presión: " + varPressure;
         temperaturaText.text = "Temperatura: " + varTemp;
         velocidadText.text = "Velocidad: " + varSpeed;
         acertijosResueltosText.text = "Acertijos resueltos: " + varSolvedPuzzles;
+        nivelDificultadText.text = "Nivel de dificultad: " + varDifficulty;
 
 
         switch (taskState)
@@ -103,12 +107,20 @@ public class Test : MonoBehaviour
                 break;
             case TaskState.WAIT_COMMANDS:
 
-                timer += Time.deltaTime;
-                if (timer >= tiempoEntreAumentos)
+                timerPuzzle += Time.deltaTime;
+                if (timerPuzzle >= tiempoEntreAumentos)
                 {
                     varSolvedPuzzles++;
-                    timer = 0.0f;
+                    timerPuzzle = 0.0f;
                     Debug.Log("Acertijos resueltos: " + varSolvedPuzzles);
+                }
+
+                timerDifficulty += Time.deltaTime;
+                if (timerDifficulty >= tiempoDificultad)
+                {
+                    varDifficulty++;
+                    timerDifficulty = 0.0f;
+                    Debug.Log("Nivel de dificultad: " + varDifficulty);
                 }
 
                 if (Input.GetKeyDown(KeyCode.Return))
