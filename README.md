@@ -99,7 +99,10 @@ Estas variables se configurarán a través del Raspberry Pi Pico para mandarlos 
         buffer = new byte[128];
     }
 ```
-
+- Se establece la funcionalidad del botón para que, en el momento que este se presione, se ejecute el cambiarPosiconCamara.
+- Algunos valores previamente establecidos adquieren un valor default para funcionar como un estándar a la hora de modificar estas mismas variables, ya sea voluntario o involuntario.
+- Se configura el serial port para generar una comunicación con el puerto COM, lo que hace el PortName. BaudRate es quien establece la velocidad de baudios, o la velocidad de comunicación entre puerto y programa. DtrEnable habilita la señal DTR (Data Terminal Ready) en el puerto COM. NewLine dibuja una nueva serie de datos que se utiliza para recolectar elementos y volver a enviar datos a través del puerto serial. Open abre el cuerpo, y por ende la comunicación.
+- Es un array llamado buffer con 128 de longitud. Este buffer se crea para almacenar datos y trata de perosnas.
 
 ``` c#
 varTemp = Convert.ToInt32(temperaturaSlider.value);
@@ -125,7 +128,7 @@ case TaskState.INIT:
                 break;
             case TaskState.WAIT_COMMANDS:
 ```
-
+El código inicializa los Commands, siempre y cuando los Commands entren en los casos que se muestran a continuación (cada caso también influye en el proceso del código del arduino).
 
 ``` c#
          timerPuzzle += Time.deltaTime;
@@ -144,7 +147,7 @@ case TaskState.INIT:
                     Debug.Log("Nivel de dificultad: " + varDifficulty);
                 }
 ```
-
+El timerPuzzle y timer Difficulty aumentará a medida que pase el tiempo con la función Time.deltaTime. Anteriormente, se asignó un valor límite para juzgar este específico caso de que lo supere. En cuestión de tiempo, la variable de turno (SolvedPuzzles o Difficulty) aumentará, lo que no solo dibujará en la consola el dato, sino que reiniciará el timer para repetir el proceso de nuevo.
 
 ``` c#
 if (Input.GetKeyDown(KeyCode.Return))
@@ -153,10 +156,9 @@ if (Input.GetKeyDown(KeyCode.Return))
                     _serialPort.Write("ledON\n");
                     _serialPort.Write(varTemp.ToString());
                     Debug.Log("Send ledON");
-                    //cambiarPosicionCamara();
                 }
 ```
-
+En caso de presionar la letra return (o enter), se guardará la temperatura inicial como una variable de temperatura, a su vez mandaría la señal para prender el led y la comunicación con el microcontrolador por una nueva línea, sujeto a un comprobante del proceso mediante el Debug.Log. Eso quiere decir que guarda el último dato de temperatura.
 
 ``` c#
                 if (Input.GetKeyDown(KeyCode.S))
@@ -170,7 +172,8 @@ if (Input.GetKeyDown(KeyCode.Return))
                     Debug.Log("Send readBUTTONS");
                 }
 ```
-
+- En caso de que la letra S sea presionada, se enviará un mensaje al serial port para declarar ledOFF (explicación en el propio código de arduino)
+- En caso de que la letra R sea presionada, se enviará un mensaje al serial port para leer los botones del código (explicación en el propio código de arduino)
 
 ``` c#
                 if (_serialPort.BytesToRead > 0)
@@ -200,12 +203,16 @@ if (Input.GetKeyDown(KeyCode.Return))
                 }
                 break;
 ```
+- En caso de que haya un dato en el puerto serial, esta guarda la información a partir de la respuesta dada en la consola una variable.
+- string[] values = response.Split(new char[] { ':', ' ' }), hace que la cadena respond se pueda descomponer en varios delimitadores con el uso de comillas ó comas.
+- Los Text se usan para mostrar la interfaz al usuario y mostrar el progreso en dicha variable de variables independientes.
 
 ``` c#
             default:
                 Debug.Log("State Error");
                 break;
 ```
+En caso de defecto, en el que se dibuja un mensaje en la consola para marcar un error en la digitalización de datos, para luego romper la cadena de los switch. 
 
 ``` c#
     void cambiarPosicionCamara()
@@ -224,6 +231,7 @@ if (Input.GetKeyDown(KeyCode.Return))
 
 ## para Arduino
 ### Variables
+
 ``` c++
 int temperature = 20;
 bool juegoActivo = false;
