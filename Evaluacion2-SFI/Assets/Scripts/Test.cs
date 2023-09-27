@@ -41,6 +41,9 @@ public class Test : MonoBehaviour
     private int varPressure;
     private int varHeight;
     private int varSpeed;
+    private int varSolvedPuzzles = 0;
+    private int varDifficulty = 0;
+
 
     private int tempInicial;
     private float timerPuzzle;
