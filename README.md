@@ -1,4 +1,4 @@
-# ef_un2
+|# ef_un2
 
 ## Manual del usuario 
 > Bienvenidos al “Escape del Himalaya”. Si desean sobrevivir, deben alcanzar la puerta de salida pueda abrirse,  resolver diferentes acertijos, y encontrar los códigos para superar cada desafío. Oh, pero eso no es todo, los acertijos se harán más y más difíciles a medida que los sobrelleves y el tiempo es limitado. Apresurate y escapa del Himalaya.
@@ -145,76 +145,131 @@ if (Input.GetKeyDown(KeyCode.A))
 5. Se desciende la temperatura siempre y cuando el valor del slider de temperatura sea mayor que 0.
 
 ## para Arduino
-
-### Bibliotecas e Inclusión de constantes
-
-1. **Arduino.h**
-Es una biblioteca estándar que proporciona las funciones y definiciones básicas para programar en Arduino. 
-
-2. **#define LED_PIN 25**
-Esto define una constante llamada **LED_PIN**, que se utiliza para especificar el número de pin que controla un LED. En este caso, se asigna el valor 25 a esta constante.
-  </li>
-</ol>
-
 ### Variables
 ``` c++
-float temperature = 0.0;
-float altitude = 0.0;
-float pressure = 0.0;
+int temperature = 20;
+bool juegoActivo = false;
 ``` 
-Estas variables se utilizan para almacenar los valores de temperatura, altitud y presión. Inicialmente, se establecen en 0.0.
+Esta variable se usa para asignar un valor a la temperatura base. Además se establece un booleano para indicar el momento en que se inicia el juego/programa.
 
 ``` c++
-float temperatureChangeSpeed = 0.0;
+String btnState(uint8_t btnState) {
+  if (btnState == HIGH) {
+    return "OFF";
+  } else
+    return "ON";
+}
 ```
-La variable booleana llamada **temperatureChangeSpeed** determina la velocidad de cambio de la temperatura.
+El btnState funciona como muestra del estado del botón en el momento. Entendemos a botón como la luz que brilla en el propio Raspberry. Esta solo recibe la señal y determina el momento en que está prendido o apagado mediante la función HIGH, que se asigna al momento de tener activo el Raspberry.
+
 ``` c++
-bool changeTemperature = true;
+void task() {
+  enum class TaskStates {
+    INIT,
+    WAIT_COMMANDS
+  };
 ``` 
-y con una bandera booleana llamada **changeTemperature** se almacena la velocidad de cambio de la temperatura.
+Se inicializa una tarea vacía que sirve para gestionar los diferentes estados en los que se encuentra el microcontrolador. Por otro lado, se define un enumerador como TaskStates. Se entiende un enumerador como una lista de valores constantes que se utilizan para representar valores discretos, esto para asignar una cantidad de valores finitos para separarlas de otras variables.
+Con el enumerador se inicializan las funciones INIT y WAIT_COMMANDS (uno activo a la vez), el INIT arremete a las configuraciones iniciales del microcontrolador para prepararlo a funcionar mientras el WAIT_COMMANDS es quien espera para recibir comandos y realizar su ejecución. Este último trabaja en simultáneo con el WAIT_COMMANDS del código de Unity para generar la conexión entre ambos.
+
 ``` c++
-void setup() {
-    // Inicializa la comunicación serial
-    Serial.begin(9600);
-
-    // Inicializa el pin del LED
-    pinMode(LED_PIN, OUTPUT);
-}
-
+  static TaskStates taskState = TaskStates::INIT;
+  constexpr uint8_t led = 25;
+  constexpr uint8_t button1Pin = 12;
+  constexpr uint8_t button2Pin = 13;
+  constexpr uint8_t button3Pin = 32;
+  constexpr uint8_t button4Pin = 33;
 ``` 
-La función **setup()** se ejecuta una vez al inicio del programa. Aquí se realizan dos tareas:
+- El static TaskStates taskState = TaskStates::INIT tiene como propósito mantener el estado de INIT en el taskState activo.
+- Constexpr genera constantes a las variables asignadas.
+- uint8_t es el tipo de código, siendo en este caso un entero de 8 bits.
+- led se asocia al propio LED enlazado al microcontrolador. Los demás funcionan como la variedad de botones que el programa requiere para su funcionamiento. También se asignan valores numéricos para representar un pin asociado a alguno de los botones.
 
-Se inicia la comunicación serial a una velocidad de 9600 baudios (bps).
-Se configura el pin **LED_PIN** como una salida.
 ``` c++
-// Bucle principal
-void loop() {
-    // Encender/apagar el LED cada segundo
-    digitalWrite(LED_PIN, HIGH);
-    delay(500);
-    digitalWrite(LED_PIN, LOW);
-    delay(500);
-
-// Actualizo la variable de temperatura 
-    if (changeTemperature) {
-        temperature += temperatureChangeSpeed;
-    }
-
-// Verifico si hay datos disponibles en la comunicación serial
-    if (Serial.available()) {
-    if(Serial.available())
-    {
-        if(Serial.read() == '1')
+    case TaskStates::WAIT_COMMANDS:
+      {
+        if (Serial.available() > 0) 
         {
-            delay(3000);
-// Envío un mensaje de respuesta a través de la comunicación serial
-            Serial.print("Hello from Raspi");
+          String command = Serial.readStringUntil('\n');
+          if (command == "ledON") 
+          {
+            String data = Serial.readString();
+            juegoActivo = true;
+            temperature = data.toInt();
+            Juego();
+
+            digitalWrite(led, HIGH);
+          }
+          else if (command == "ledOFF") 
+          {
+            juegoActivo = false;
+
+            digitalWrite(led, LOW);
+          }
+          else if (command == "readBUTTONS")
+          {
+            Serial.print("boton1: ");
+            Serial.print(btnState(digitalRead(button1Pin)).c_str());
+            Serial.print(" btn2: ");
+            Serial.print(btnState(digitalRead(button2Pin)).c_str());
+            Serial.print(" btn3: ");
+            Serial.print(btnState(digitalRead(button3Pin)).c_str());
+            Serial.print(" btn4: ");
+            Serial.print(btnState(digitalRead(button4Pin)).c_str());
+            Serial.print('\n');
+          }
         }
-    }
+        break;
+      }
+      default:
+      {
+        break;
+      }
+  }
+} 
+``` 
+- if (Serial.available() > 0) se asocia en el momento en que cualquier valor esté ingresado en el puerto serial del programa.
+- String command = Serial.readStringUntil('\n') lee el puerto serial siempre y cuando este no inicie una nueva línea. Esto se hace para que esta línea se guarde en el command y se pueda generar la comunicación.
+- ¿Recuerdan al inicio del código con el btnState? Bueno, en caso de que esté en ON, y este sea compatible con el command que esté asignado en el puerto serial en ese momento, se cumplen cuatro funciones: guardar en el data una nueva línea en el serial que representará el cambio de temperatura a lo largo de todo el código, vuelve verdadero el juegoActivo para llamar a una clase más adelante, activa el led con el HIGH e inicializa el Juego().
+- En caso de que btnState sea OFF ocasionará que el juegoActivo vuelva a ser falso y el led se apague con el LOW.
+- Si el command y el readBUTTONS son iguales leerá el estado de los botones en el momento en que se ejecutó el command.
+**NOTA:** hay que recordar que el command y sus asignaciones se realizan desde el código de Unity (C#), designado desde el inicio de este código.
+
+``` c++
+void setup() 
+{
+  task();
+}
+
+void loop() 
+{
+  task();
+
+  if (juegoActivo) 
+  {
+    Juego();
+  }
 }
 ``` 
-La función **loop()** es un bucle que se ejecuta continuamente después de que setup() se haya completado. Aquí se llevan a cabo las siguientes acciones:
+Se establece el task() desde un principio en el programa, mientras que en el Loop se mantiene el task(), pero también se ejecutará el Juego() siempre y cuando juegoActivo sea verdadero.
 
-Enciende y apaga el LED cada 500 milisegundos, creando un efecto de parpadeo.
-Actualiza la variable temperature sumando el valor de temperatureChangeSpeed si changeTemperature es verdadero.
-Verifica si hay datos disponibles en la comunicación serial. Si se recibe el carácter '1' a través de la comunicación serial, el Arduino espera 3 segundos y luego envía "Hello from Raspi" a través de la comunicación serial.
+``` c++
+void Juego() 
+{
+    if (temperature > 0) 
+    {
+      delay(1000); // descenso de temperatura cada segundo
+      Serial.println(temperature);
+      temperature--;
+    } 
+    else 
+    {
+      Serial.println("PERDISTE! ESTAS CONGELADO!");
+      delay(5000);
+      temperature = 20;
+      juegoActivo = false; // Juego terminado
+    }
+}
+```
+- El Void Juego(), se ha mencionado un par de veces antes. Es quien mide la naturaleza de la temperatura, es decir, su estado actual. Al pasar un tiempo, la variable de temperature descenderá hasta que la condición no se cumpla. 
+- En caso de no cumplirse, se iría al else donde se determinaría la pérdida del jugador, reiniciando el bucle con el juegoActivo en false, lo que lleva a reiniciar la mayor parte de lo realizado con anterioridad y se definiría el default de temperatura. 
