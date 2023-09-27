@@ -169,8 +169,9 @@ void task() {
     WAIT_COMMANDS
   };
 ``` 
-Se inicializa una tarea vacía que sirve para gestionar los diferentes estados en los que se encuentra el microcontrolador. Por otro lado, se define un enumerador como TaskStates. Se entiende un enumerador como una lista de valores constantes que se utilizan para representar valores discretos, esto para asignar una cantidad de valores finitos para separarlas de otras variables.
-Con el enumerador se inicializan las funciones INIT y WAIT_COMMANDS (uno activo a la vez), el INIT arremete a las configuraciones iniciales del microcontrolador para prepararlo a funcionar mientras el WAIT_COMMANDS es quien espera para recibir comandos y realizar su ejecución. Este último trabaja en simultáneo con el WAIT_COMMANDS del código de Unity para generar la conexión entre ambos.
+Se inicializa una tarea vacía que sirve para gestionar los diferentes estados en los que se encuentra el microcontrolador. Por otro lado, se define un enumerador como TaskStates. Se entiende un enumerador como una lista de valores constantes que se utilizan para representar valores discretos, esto para asignar una cantidad de valores finitos para separarlas de otras variables (o decir que las variables asignadas no corran al mismo tiempo y genere un caos innecesario).
+
+Con el enumerador se inicializan las funciones INIT y WAIT_COMMANDS, el INIT arremete a las configuraciones iniciales del microcontrolador para prepararlo a funcionar mientras el WAIT_COMMANDS es quien espera para recibir comandos y realizar su ejecución. Este último trabaja en simultáneo con el WAIT_COMMANDS del código de Unity para generar la conexión entre ambos.
 
 ``` c++
   static TaskStates taskState = TaskStates::INIT;
