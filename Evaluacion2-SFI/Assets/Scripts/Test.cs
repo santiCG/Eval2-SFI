@@ -41,8 +41,12 @@ public class Test : MonoBehaviour
     private int varPressure;
     private int varHeight;
     private int varSpeed;
+    private int varSolvedPuzzles;
 
     private int tempInicial;
+    private float timer;
+    private float tiempoEntreAumentos = 10.0f;
+
 
     public Button boton;
 
@@ -61,8 +65,9 @@ public class Test : MonoBehaviour
 
         temperaturaSlider.value = 25; // Valor inicial de la temperatura.
         altitudSlider.value = 500;    // Valor inicial de la altitud.
-        presionSlider.value = 13;   // Valor inicial de la presión atmosférica.
+        presionSlider.value = 13;   // Valor inicial de la presiÃ³n atmosfÃ©rica.
         velocidadSlider.value = 1;
+        timer = 0.0f;
 
 
         _serialPort = new SerialPort();
@@ -81,11 +86,14 @@ public class Test : MonoBehaviour
         varPressure = Convert.ToInt32(presionSlider.value);
         varHeight = Convert.ToInt32(altitudSlider.value);
         varSpeed = Convert.ToInt32(velocidadSlider.value);
+        varSolvedPuzzles = 0;
 
         alturaText.text = "Altura: " + varHeight;
-        presionText.text = "Presión: " + varPressure;
+        presionText.text = "PresiÃ³n: " + varPressure;
         temperaturaText.text = "Temperatura: " + varTemp;
         velocidadText.text = "Velocidad: " + varSpeed;
+        acertijosResueltosText.text = "Acertijos resueltos: " + varSolvedPuzzles;
+
 
         switch (taskState)
         {
@@ -94,6 +102,14 @@ public class Test : MonoBehaviour
                 Debug.Log("WAIT COMMANDS");
                 break;
             case TaskState.WAIT_COMMANDS:
+
+                timer += Time.deltaTime;
+                if (timer >= tiempoEntreAumentos)
+                {
+                    varSolvedPuzzles++;
+                    timer = 0.0f;
+                    Debug.Log("Acertijos resueltos: " + varSolvedPuzzles);
+                }
 
                 if (Input.GetKeyDown(KeyCode.Return))
                 {
